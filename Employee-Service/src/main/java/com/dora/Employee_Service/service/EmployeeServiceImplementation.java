@@ -6,10 +6,8 @@ import com.dora.Employee_Service.dto.EmployeeDto;
 import com.dora.Employee_Service.entity.Employee;
 import com.dora.Employee_Service.repository.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.client.WebClient;
+
 
 @Service
 public class EmployeeServiceImplementation implements EmployeeService {
@@ -17,7 +15,7 @@ public class EmployeeServiceImplementation implements EmployeeService {
     @Autowired
     private EmployeeRepository employeeRepository;
 @Autowired
-    public WebClient webClient;
+    public APIClient feignClient;
 
 
     EmployeeServiceImplementation(){
@@ -49,21 +47,13 @@ public class EmployeeServiceImplementation implements EmployeeService {
     @Override
     public APIResponseDTO getEmployeeDetails(Long employeeId) {
          Employee employeeDto= employeeRepository.findById(employeeId).get();
-//        ResponseEntity<DepartmentDto> responseEntity= restTemplate
-//                .getForEntity("http://localhost:8080/api/departments/IT001"
-//                        +employeeDto.getDepartmentCode(),
-//                 DepartmentDto.class);
-
-        System.out.println(webClient);
-        DepartmentDto departmentDto=   webClient.get()
-                .uri("http://localhost:8080/api/departments/"+employeeDto.getDepartmentCode())
-                .retrieve()
-                .bodyToMono(DepartmentDto.class).block();
 
 
+        DepartmentDto departmentEmployeeIdByCode = feignClient
+                .getDepartmentEmployeeIdByCode(employeeDto.getDepartmentCode());
 
 
-         EmployeeDto employeeDto1=new EmployeeDto(
+        EmployeeDto employeeDto1=new EmployeeDto(
                  employeeDto.getId(),
                  employeeDto.getFirstName(),
                  employeeDto.getLastName(),
@@ -76,7 +66,7 @@ public class EmployeeServiceImplementation implements EmployeeService {
 
         APIResponseDTO apiResponseDTO=new APIResponseDTO();
         apiResponseDTO.setEmployeeDto(employeeDto1);
-        apiResponseDTO.setDepartmentDto(departmentDto);
+        apiResponseDTO.setDepartmentDto(departmentEmployeeIdByCode);
 
          return  apiResponseDTO;
     }
